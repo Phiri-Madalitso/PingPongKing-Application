@@ -1,2 +1,5 @@
-# PingPongKing-Application
-Application to see history of ping pong games and the current scoreboard between players.
+# PingPongKing
+
+An app for tracking ping pong match history and the current leaderboard between players.
+
+**Status:** planning.
