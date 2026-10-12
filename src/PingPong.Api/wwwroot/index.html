@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PingPongKing</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#1c2230; --muted:#6b7385; --accent:#e8590c; --line:#e3e6ec; --good:#2f9e44; --bad:#c92a2a; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14171f; --card:#1d212c; --text:#e8eaf0; --muted:#98a0b3; --line:#2c3242; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:16px; display:grid; gap:16px; }
+  h1 { margin:8px 0 0; } h2 { margin:0 0 12px; font-size:1.1rem; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  input, select, button { font:inherit; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--text); }
+  button { background:var(--accent); color:#fff; border:0; cursor:pointer; }
+  table { width:100%; border-collapse:collapse; } td, th { text-align:left; padding:6px 4px; border-bottom:1px solid var(--line); }
+  .muted { color:var(--muted); } .err { color:var(--bad); }
+  .bar { display:flex; height:28px; border-radius:8px; overflow:hidden; margin:8px 0; font-size:.85rem; color:#fff; }
+  .bar div { display:flex; align-items:center; justify-content:center; min-width:0; }
+  .bar .a { background:var(--accent); } .bar .b { background:#364fc7; }
+</style>
+</head>
+<body>
+<main>
+  <h1>🏓 PingPongKing</h1>
+
+  <section class="card">
+    <h2>Rangering</h2>
+    <table id="board"><thead><tr><th>#</th><th>Spiller</th><th>Rating</th></tr></thead><tbody></tbody></table>
+    <form id="addPlayer" class="row" style="margin-top:12px">
+      <input name="name" placeholder="Nytt spillernavn" maxlength="50" required>
+      <button>Legg til spiller</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Registrer kamp</h2>
+    <form id="addMatch" class="row">
+      <select id="m1" required></select>
+      <input id="s1" type="number" min="0" placeholder="Poeng" style="width:90px">
+      <span>mot</span>
+      <select id="m2" required></select>
+      <input id="s2" type="number" min="0" placeholder="Poeng" style="width:90px">
+      <label class="muted">Vinner
+        <select id="mw"><option value="1">Venstre</option><option value="2">Høyre</option></select>
+      </label>
+      <input id="md" type="date" title="Dato (tom = i dag)">
+      <button>Lagre</button>
+    </form>
+    <p id="matchMsg" class="err"></p>
+  </section>
+
+  <section class="card">
+    <h2>Innbyrdes oppgjør</h2>
+    <div class="row">
+      <select id="ha"></select> <span>mot</span> <select id="hb"></select>
+      <input id="hy" type="number" placeholder="År (valgfritt)" style="width:130px">
+      <button id="hgo">Vis</button>
+    </div>
+    <div id="h2h"></div>
+  </section>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function api(path, opts) {
+  const r = await fetch('/api' + path, opts && { ...opts, headers: { 'Content-Type': 'application/json' } });
+  if (!r.ok) throw new Error(await r.text() || r.statusText);
+  return r.json();
+}
+let players = [];
+async function loadPlayers() {
+  players = await api('/players');
+  $('#board tbody').innerHTML = players.map((p, i) =>
+    `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${p.rating}</td></tr>`).join('');
+  const opts = players.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  for (const id of ['#m1', '#m2', '#ha', '#hb']) {
+    const keep = $(id).value; $(id).innerHTML = opts; if (keep) $(id).value = keep;
+  }
+  if (players.length > 1 && $('#m1').value === $('#m2').value) { $('#m2').selectedIndex = 1; $('#hb').selectedIndex = 1; }
+}
+$('#addPlayer').onsubmit = async e => {
+  e.preventDefault();
+  try { await api('/players', { method: 'POST', body: JSON.stringify({ name: e.target.name.value }) }); e.target.reset(); await loadPlayers(); }
+  catch (err) { alert(err.message); }
+};
+$('#addMatch').onsubmit = async e => {
+  e.preventDefault(); $('#matchMsg').textContent = '';
+  const p1 = +$('#m1').value, p2 = +$('#m2').value;
+  const num = v => v === '' ? null : +v;
+  try {
+    await api('/matches', { method: 'POST', body: JSON.stringify({
+      player1Id: p1, player2Id: p2, winnerId: $('#mw').value === '1' ? p1 : p2,
+      player1Score: num($('#s1').value), player2Score: num($('#s2').value),
+      playedAt: $('#md').value ? new Date($('#md').value + 'T12:00:00Z').toISOString() : null }) });
+    await loadPlayers(); $('#hgo').click();
+  } catch (err) { $('#matchMsg').textContent = err.message; }
+};
+$('#hgo').onclick = async () => {
+  const y = $('#hy').value;
+  try {
+    const d = await api(`/head-to-head?playerA=${$('#ha').value}&playerB=${$('#hb').value}` + (y ? `&year=${y}` : ''));
+    const pa = Math.round(d.winProbabilityA * 100), pb = 100 - pa;
+    const streak = d.streakLength ? `Siste rekke: ${esc(d.streakPlayerId === d.playerAId ? d.playerAName : d.playerBName)} har vunnet ${d.streakLength} på rad.` : '';
+    $('#h2h').innerHTML = `
+      <p><strong>${esc(d.playerAName)}</strong> ${d.winsA} – ${d.winsB} <strong>${esc(d.playerBName)}</strong>
+         <span class="muted">(${d.gameCount} kamper)</span><br>${streak}</p>
+      <div class="bar"><div class="a" style="width:${pa}%">${pa}%</div><div class="b" style="width:${pb}%">${pb}%</div></div>
+      <p class="muted">Sannsynlighet for å vinne neste kamp. ELO alene: ${Math.round(d.eloProbabilityA * 100)}% for ${esc(d.playerAName)}; innbyrdes historikk: ${Math.round(d.historyProbabilityA * 100)}%.</p>
+      <table><thead><tr><th>Dato</th><th>Vinner</th><th>Stilling</th></tr></thead><tbody>${
+        d.games.map(g => `<tr><td>${new Date(g.playedAt).toLocaleDateString('no')}</td><td>${esc(g.winnerName)}</td><td>${esc(g.score ?? '–')}</td></tr>`).join('')
+      }</tbody></table>`;
+  } catch (err) { $('#h2h').innerHTML = `<p class="err">${esc(err.message)}</p>`; }
+};
+loadPlayers();
+</script>
+</body>
+</html>
