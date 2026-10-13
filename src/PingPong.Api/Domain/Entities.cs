@@ -32,3 +32,12 @@ public class RatingHistory
     public int RatingAfter { get; set; }
     public DateTime RecordedAt { get; set; } = DateTime.UtcNow;
 }
+
+/// <summary>En spiller i køen. De to første i JoinedAt-rekkefølge spiller nå.</summary>
+public class QueueEntry
+{
+    public int Id { get; set; }
+    public int PlayerId { get; set; }
+    public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+    public Player? Player { get; set; }
+}

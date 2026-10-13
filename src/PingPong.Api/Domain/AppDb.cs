@@ -7,6 +7,7 @@ public class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
     public DbSet<Player> Players => Set<Player>();
     public DbSet<Match> Matches => Set<Match>();
     public DbSet<RatingHistory> RatingHistory => Set<RatingHistory>();
+    public DbSet<QueueEntry> Queue => Set<QueueEntry>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -18,6 +19,8 @@ public class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
         b.Entity<Match>().HasOne(m => m.Player2).WithMany().HasForeignKey(m => m.Player2Id).OnDelete(DeleteBehavior.Restrict);
         b.Entity<Match>().HasOne(m => m.Winner).WithMany().HasForeignKey(m => m.WinnerId).OnDelete(DeleteBehavior.Restrict);
         b.Entity<Match>().HasIndex(m => m.PlayedAt);
+
+        b.Entity<QueueEntry>().HasIndex(q => q.PlayerId).IsUnique(); // maks én plass i køen per spiller
 
         b.Entity<RatingHistory>().HasOne<Player>().WithMany().HasForeignKey(r => r.PlayerId);
         b.Entity<RatingHistory>().HasOne<Match>().WithMany().HasForeignKey(r => r.MatchId);

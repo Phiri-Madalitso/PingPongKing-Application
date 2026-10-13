@@ -5,119 +5,622 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PingPongKing</title>
 <style>
-  :root { --bg:#f6f7f9; --card:#fff; --text:#1c2230; --muted:#6b7385; --accent:#e8590c; --line:#e3e6ec; --good:#2f9e44; --bad:#c92a2a; }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#14171f; --card:#1d212c; --text:#e8eaf0; --muted:#98a0b3; --line:#2c3242; }
+  :root {
+    --bg:#f3f4f6; --card:#ffffff; --text:#111827; --muted:#6b7280; --line:#e2e5ea;
+    --blue:#1d4ed8; --blue-hover:#1e40af; --orange:#1d4ed8; --orange-hover:#1e40af;
+    --green:#1d8a3c; --red:#d70015; --fill:#eef0f3; --navy:#0f172a;
+    --radius:12px; --shadow:0 1px 2px rgba(17,24,39,.06);
   }
-  * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 system-ui, sans-serif; }
-  main { max-width:900px; margin:0 auto; padding:16px; display:grid; gap:16px; }
-  h1 { margin:8px 0 0; } h2 { margin:0 0 12px; font-size:1.1rem; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; }
-  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  input, select, button { font:inherit; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--text); }
-  button { background:var(--accent); color:#fff; border:0; cursor:pointer; }
-  table { width:100%; border-collapse:collapse; } td, th { text-align:left; padding:6px 4px; border-bottom:1px solid var(--line); }
-  .muted { color:var(--muted); } .err { color:var(--bad); }
-  .bar { display:flex; height:28px; border-radius:8px; overflow:hidden; margin:8px 0; font-size:.85rem; color:#fff; }
-  .bar div { display:flex; align-items:center; justify-content:center; min-width:0; }
-  .bar .a { background:var(--accent); } .bar .b { background:#364fc7; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0b0f17; --card:#131925; --text:#e8ebf1; --muted:#96a0b3; --line:#232c3d; --fill:#1b2333;
+            --blue:#5b8def; --blue-hover:#7aa2f3; --orange:#5b8def; --orange-hover:#7aa2f3;
+            --green:#30d158; --red:#ff453a; --navy:#0b0f17; --shadow:none; }
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; background:var(--bg); color:var(--text); font:17px/1.47 -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif; letter-spacing:-.01em; }
+  .wrap { max-width:980px; margin:0 auto; padding:0 20px; }
+
+  /* Topplinje */
+  .top { position:sticky; top:0; z-index:10; background:var(--card); border-bottom:1px solid var(--line); }
+  .top .wrap { display:flex; align-items:center; gap:16px; height:56px; }
+  .brand { font-weight:700; font-size:1.15rem; white-space:nowrap; color:var(--text); display:flex; align-items:center; gap:10px; letter-spacing:-.01em; }
+  .brand .ic { width:22px; height:22px; }
+  nav { display:flex; gap:4px; margin-left:auto; overflow-x:auto; }
+  nav button { border:0; background:none; color:var(--muted); font:inherit; font-size:.92rem; font-weight:500; padding:8px 12px; border-radius:8px; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:7px; }
+  nav button:hover { color:var(--text); background:var(--fill); }
+  nav button.on { background:var(--fill); color:var(--text); box-shadow:inset 0 -2px 0 var(--blue); border-radius:8px 8px 0 0; }
+  .ic { width:1.2em; height:1.2em; flex:none; vertical-align:-.2em; }
+  h1 .ic { width:.9em; height:.9em; margin-right:10px; vertical-align:-.08em; color:var(--muted); }
+  h2 .ic { margin-right:8px; vertical-align:-.22em; color:var(--muted); }
+
+  h1 { font-size:1.9rem; line-height:1.15; font-weight:650; letter-spacing:-.02em; margin:32px 0 6px; }
+  h2 { font-size:1.1rem; font-weight:600; letter-spacing:-.01em; margin:0 0 4px; }
+  .lead { color:var(--muted); font-size:1rem; margin:0 0 24px; }
+  .hint { color:var(--muted); font-size:.95rem; margin:0 0 16px; }
+  .page { display:none; padding-bottom:64px; } .page.on { display:block; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:24px; margin-bottom:16px; box-shadow:var(--shadow); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; } .grid2 > .card { margin:0; }
+  @media (max-width:760px) { .grid2 { grid-template-columns:1fr; } h1 { font-size:2rem; } }
+
+  label { display:block; font-size:.9rem; font-weight:600; margin:16px 0 6px; }
+  input, select { width:100%; font:inherit; padding:13px 14px; border-radius:12px; border:1px solid var(--line); background:var(--bg); color:var(--text); }
+  input:focus, select:focus { outline:3px solid color-mix(in srgb, var(--blue) 35%, transparent); border-color:var(--blue); }
+
+  .btn { display:block; width:100%; font:inherit; font-weight:500; font-size:1.05rem; padding:14px 20px; border:0; border-radius:10px; color:#fff; background:var(--blue); cursor:pointer; margin-top:14px; transition:background .15s, transform .05s; }
+  .btn:hover { background:var(--blue-hover); } .btn:active { transform:scale(.985); } .btn:disabled { opacity:.5; cursor:default; }
+  .btn.gray { background:var(--fill); color:var(--text); border:1px solid var(--line); } .btn.gray:hover { background:var(--line); }
+  .btn.orange { background:var(--orange); } .btn.orange:hover { background:var(--orange-hover); }
+  .btn.small { display:inline-block; width:auto; padding:8px 16px; font-size:.9rem; margin:0; }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .vs { text-align:center; color:var(--muted); font-size:.9rem; margin:10px 0 0; }
+
+  .row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 0; border-bottom:1px solid var(--line); }
+  .row:last-child { border:0; }
+  .rank { width:2rem; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .num { font-variant-numeric:tabular-nums; font-weight:600; }
+  .pill { background:var(--fill); border-radius:10px; padding:2px 10px; font-size:.85rem; color:var(--muted); }
+  .msg { min-height:1.4em; font-size:.95rem; font-weight:500; margin:12px 0 0; } .ok { color:var(--green); } .err { color:var(--red); }
+  .empty { color:var(--muted); text-align:center; padding:20px 0; }
+  details { margin-top:16px; } summary { cursor:pointer; color:var(--blue); font-size:.95rem; }
+
+  .nowgame { text-align:center; padding:12px 0 4px; font-size:1.6rem; font-weight:650; letter-spacing:-.02em; }
+  .nowgame span { color:var(--muted); font-weight:400; font-size:1.1rem; margin:0 8px; }
+  .big-score { text-align:center; font-size:3.4rem; font-weight:650; letter-spacing:-.04em; line-height:1; margin:8px 0; font-variant-numeric:tabular-nums; }
+  .bar { display:flex; height:44px; border-radius:10px; overflow:hidden; font-weight:600; color:#fff; margin:12px 0; }
+  .bar div { display:flex; align-items:center; justify-content:center; transition:width .4s; }
+  .bar .a { background:var(--blue); } .bar .b { background:#64748b; }
+  .row.leader { background:linear-gradient(90deg, color-mix(in srgb, var(--orange) 14%, transparent), transparent); border-radius:10px; padding-left:8px; }
+
+  /* Scoretavle */
+  #score.on { padding-bottom:0; }
+  .sb { background:#0f172a; border:1px solid #1e293b; color:#f8fafc; border-radius:var(--radius); padding:28px 28px 24px; min-height:min(78vh, 640px); display:flex; flex-direction:column; position:relative; }
+  .sb:fullscreen { border-radius:0; min-height:100vh; padding:40px; }
+  .sb-cols { flex:1; display:grid; grid-template-columns:1fr 1px 1fr; gap:24px; }
+  .sb-div { background:rgba(255,255,255,.14); }
+  .sb-side { display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .sb-name { font-size:clamp(1.6rem, 4.5vw, 3.4rem); font-weight:700; letter-spacing:-.03em; width:100%; padding-bottom:14px; border-bottom:1px solid rgba(255,255,255,.18); }
+  .sb-rating { opacity:.75; font-size:.95rem; margin-top:6px; }
+  .sb-pts { font-size:clamp(6rem, 24vw, 15rem); font-weight:300; line-height:1; font-variant-numeric:tabular-nums; margin:auto 0; letter-spacing:-.04em; }
+  .sb-games { font-size:1.05rem; opacity:.9; display:flex; gap:8px; align-items:center; margin-top:14px; }
+  .sb-games b { font-size:2rem; font-weight:600; }
+  .sb-btn { margin-top:16px; width:100%; max-width:340px; font:inherit; font-weight:600; font-size:1.15rem; padding:16px; border:0; border-radius:10px; background:#f8fafc; color:#0f172a; cursor:pointer; }
+  .sb-btn:active { transform:scale(.97); } .sb-btn:disabled { opacity:.5; }
+  .sb-bar { display:flex; gap:10px; justify-content:space-between; align-items:center; margin-top:22px; flex-wrap:wrap; }
+  .sb-bar button, .sb-bar select { font:inherit; font-size:.95rem; font-weight:500; padding:10px 18px; border-radius:10px; border:1px solid rgba(255,255,255,.55); background:transparent; color:#fff; cursor:pointer; width:auto; }
+  .sb-bar select option { color:#1d1d1f; }
+  .sb-win { position:absolute; inset:0; background:rgba(8,12,22,.94); border-radius:inherit; display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; gap:8px; }
+  .sb-win.on { display:flex; } .sb-win h2 { font-size:clamp(2rem,6vw,4rem); letter-spacing:-.03em; margin:0; }
+  .sb-win p { font-size:1.3rem; opacity:.85; margin:0 0 16px; }
+  .sb-toast { position:absolute; left:20px; right:20px; bottom:84px; background:rgba(0,0,0,.82); border-radius:16px; padding:14px; z-index:5; }
+  .cam-view { position:relative; background:#000; border-radius:14px; overflow:hidden; aspect-ratio:16/9; }
+  .cam-view video, .cam-view canvas { position:absolute; inset:0; width:100%; height:100%; object-fit:fill; }
+  .cam-view canvas { cursor:crosshair; }
+  .cam-prop { display:flex; gap:14px; align-items:center; margin-top:16px; background:var(--fill); border-radius:14px; padding:12px; color:var(--text); }
+  .sb-toast .cam-prop { background:transparent; color:#fff; margin:0; }
+  .cam-prop img, .cam-log img { width:160px; max-width:38%; border-radius:10px; flex:none; }
+  .cam-prop span, .cam-log span { font-size:.9rem; opacity:.8; }
+  .cam-btns { display:flex; gap:8px; margin-top:8px; }
+  .cam-btns button { font:inherit; font-size:.9rem; font-weight:500; padding:8px 16px; border-radius:10px; border:0; cursor:pointer; background:var(--blue); color:#fff; }
+  .cam-btns button[data-cam="no"] { background:var(--line); color:var(--text); }
+  .cam-log { display:flex; gap:14px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line); }
+  .cam-log:last-child { border:0; }
+  .steps { padding-left:1.2rem; margin:8px 0 0; } .steps li { margin-bottom:10px; }
+  :root { --ball:#f97316; --ball-dark:#c2410c; }
+  .brand .ic { color:var(--ball); }
+  nav button.on { box-shadow:inset 0 -2px 0 var(--ball); }
+  .btn.orange { background:var(--ball-dark); } .btn.orange:hover { background:#9a3412; }
+  .row.leader .rank .ic { color:var(--ball); }
+
+  .hero { position:relative; overflow:hidden; border-radius:var(--radius); padding:34px 28px 30px; margin:24px 0 16px; background:var(--navy); color:#f8fafc; min-height:180px; }
+  .hero .kicker { position:relative; color:var(--ball); font-weight:600; font-size:.9rem; letter-spacing:.02em; }
+  .hero h1 { position:relative; margin:6px 0 8px; color:#fff; font-size:2.3rem; }
+  .hero p { position:relative; margin:0; color:#aab4c5; max-width:34ch; }
+  .hero-art { position:absolute; right:0; bottom:0; width:min(58%,440px); height:100%; opacity:.95; }
+  .hero-art .tbl { fill:#1e3a8a; } .hero-art .tbl-top { fill:#2f5bd1; } .hero-art .line { stroke:#fff; opacity:.7; }
+  .hero-art .ball { fill:var(--ball); }
+  .bx { animation:bx 2.4s linear infinite alternate; }
+  .by { animation:by 2.4s infinite; }
+  @keyframes bx { from { transform:translateX(0); } to { transform:translateX(330px); } }
+  @keyframes by {
+    0%   { transform:translateY(-70px); animation-timing-function:cubic-bezier(.4,0,1,1); }
+    25%  { transform:translateY(0);     animation-timing-function:cubic-bezier(0,0,.6,1); }
+    50%  { transform:translateY(-70px); animation-timing-function:cubic-bezier(.4,0,1,1); }
+    75%  { transform:translateY(0);     animation-timing-function:cubic-bezier(0,0,.6,1); }
+    100% { transform:translateY(-70px); }
+  }
+  @media (prefers-reduced-motion: reduce) { .bx, .by { animation:none; } }
+  @media (max-width:560px) { .hero-art { opacity:.35; width:80%; } }
+
+  .av { width:36px; height:36px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:600; font-size:.85rem; color:#fff; flex:none; margin-right:12px; }
+  .who { display:flex; align-items:center; flex:1; min-width:0; }
+  .who small { display:block; color:var(--muted); font-size:.8rem; font-weight:400; line-height:1.2; }
+  .verdict { font-size:1.05rem; font-weight:600; margin:10px 0 0; }
+  .sb-tag { min-height:1.7rem; font-size:.85rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--ball); margin-top:6px; }
+  .foot { color:var(--muted); text-align:center; padding:0 0 40px; font-size:.85rem; }
+  .sb-empty { flex:1; display:flex; align-items:center; justify-content:center; text-align:center; font-size:1.4rem; padding:20px; }
 </style>
 </head>
 <body>
-<main>
-  <h1>🏓 PingPongKing</h1>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-ball" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 8.2c2.2.6 3.8 2.4 4.1 4.6M18.4 15.8c-2.2-.6-3.8-2.4-4.1-4.6"/></symbol>
+  <symbol id="i-paddle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.8"/><path d="M15 15l5.5 5.5"/><circle cx="19.2" cy="5" r="1.6"/></symbol>
+  <symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="8.5" width="19" height="7" rx="1"/><path d="M12 8.5v7M5 15.5V20M19 15.5V20"/></symbol>
+    <symbol id="i-score" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v14M7 11v2M17 11v2"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h3.5l1.5-2h8l1.5 2H21v11H3z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M9 20h6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></symbol>
+  <symbol id="i-vs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h14l-3-3M20 16H6l3 3"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.4c2.2.7 3.5 2.6 3.5 5.6"/></symbol>
+</svg>
 
-  <section class="card">
-    <h2>Rangering</h2>
-    <table id="board"><thead><tr><th>#</th><th>Spiller</th><th>Rating</th></tr></thead><tbody></tbody></table>
-    <form id="addPlayer" class="row" style="margin-top:12px">
-      <input name="name" placeholder="Nytt spillernavn" maxlength="50" required>
-      <button>Legg til spiller</button>
-    </form>
-  </section>
 
-  <section class="card">
-    <h2>Registrer kamp</h2>
-    <form id="addMatch" class="row">
-      <select id="m1" required></select>
-      <input id="s1" type="number" min="0" placeholder="Poeng" style="width:90px">
-      <span>mot</span>
-      <select id="m2" required></select>
-      <input id="s2" type="number" min="0" placeholder="Poeng" style="width:90px">
-      <label class="muted">Vinner
-        <select id="mw"><option value="1">Venstre</option><option value="2">Høyre</option></select>
-      </label>
-      <input id="md" type="date" title="Dato (tom = i dag)">
-      <button>Lagre</button>
-    </form>
-    <p id="matchMsg" class="err"></p>
-  </section>
+<header class="top"><div class="wrap">
+  <div class="brand"><svg class="ic"><use href="#i-paddle"/></svg> PingPongKing</div>
+  <nav>
+    <button data-tab="table" class="on"><svg class="ic"><use href="#i-table"/></svg>Bordet</button>
+    <button data-tab="score"><svg class="ic"><use href="#i-score"/></svg>Scoretavle</button>
+    <button data-tab="camera"><svg class="ic"><use href="#i-camera"/></svg>Kamera</button>
+    <button data-tab="board"><svg class="ic"><use href="#i-trophy"/></svg>Toppliste</button>
+    <button data-tab="match"><svg class="ic"><use href="#i-plus"/></svg>Ny kamp</button>
+    <button data-tab="h2h"><svg class="ic"><use href="#i-vs"/></svg>Mot hverandre</button>
+  </nav>
+</div></header>
 
-  <section class="card">
-    <h2>Innbyrdes oppgjør</h2>
-    <div class="row">
-      <select id="ha"></select> <span>mot</span> <select id="hb"></select>
-      <input id="hy" type="number" placeholder="År (valgfritt)" style="width:130px">
-      <button id="hgo">Vis</button>
+<main class="wrap">
+
+  <!-- BORDET -->
+  <section id="table" class="page on">
+    <div class="hero">
+      <svg class="hero-art" viewBox="0 0 400 180" preserveAspectRatio="xMaxYMax meet" aria-hidden="true">
+        <rect class="tbl" x="20" y="132" width="360" height="12" rx="2"/>
+        <rect class="tbl-top" x="20" y="126" width="360" height="8" rx="2"/>
+        <path class="line" d="M200 126v-26" stroke-width="3"/><path class="line" d="M20 130h360" stroke-width="1"/>
+        <path class="line" d="M50 144v30M350 144v30" stroke-width="5" stroke-linecap="round" opacity=".35"/>
+        <g class="bx"><g class="by"><circle class="ball" cx="30" cy="118" r="8"/></g></g>
+      </svg>
+      <div class="kicker" id="kicker">PingPongKing</div>
+      <h1>Hvem tar bordet?</h1>
+      <p>Still deg i køen, spill til 11 og klatre på listen. Taperen gir plassen videre.</p>
     </div>
-    <div id="h2h"></div>
+    <div class="card">
+      <h2>Spiller nå</h2>
+      <div id="now"></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h2>Kø</h2>
+        <p class="hint">Taperen går bakerst. Vinneren blir stående.</p>
+        <div id="queue"></div>
+        <label for="qp">Hvem er du?</label>
+        <select id="qp"></select>
+        <button class="btn" id="qjoin">Still meg i kø</button>
+        <p id="queueMsg" class="msg"></p>
+      </div>
+      <div class="card">
+        <h2>Siste kamper</h2>
+        <p class="hint">De fem nyeste.</p>
+        <div id="recent"></div>
+        <button class="btn gray" id="undo">Angre siste kamp</button>
+      </div>
+    </div>
+    <div class="card" style="margin-top:20px">
+      <h2>Åpne på mobilen</h2>
+      <p class="hint">Koble mobilen til samme Wi-Fi og skriv inn en av adressene:</p>
+      <div id="urls"></div>
+    </div>
+  </section>
+
+  <!-- SCORETAVLE -->
+  <section id="score" class="page">
+    <div class="sb" id="sb">
+      <div id="sbBody" style="display:flex;flex-direction:column;flex:1"></div>
+      <div class="sb-bar">
+        <button id="sbCorrect">Korriger</button>
+        <span id="sbInfo" style="opacity:.85"></span>
+        <span>
+          <select id="sbBest" aria-label="Antall games">
+            <option value="1">1 game</option><option value="3" selected>Best av 3</option><option value="5">Best av 5</option>
+          </select>
+          <button id="sbReset">Nullstill</button>
+          <button id="sbFull">Fullskjerm</button>
+        </span>
+      </div>
+      <div id="sbToast" class="sb-toast" style="display:none"></div>
+      <div class="sb-win" id="sbWin">
+        <h2 id="sbWinTitle"></h2><p id="sbWinSub"></p>
+        <button class="sb-btn" id="sbSave">Lagre resultat</button>
+        <button class="sb-btn" id="sbUndoWin" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.6)">Angre siste poeng</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- KAMERA -->
+  <section id="camera" class="page">
+    <h1><svg class="ic"><use href="#i-camera"/></svg>Kamera</h1>
+    <p class="lead">Kameraet følger ballen og gir poeng automatisk, og lagrer en ballbane som bevis.</p>
+
+    <div class="card">
+      <div class="cam-view">
+        <video id="camVideo" muted playsinline></video>
+        <canvas id="camOverlay"></canvas>
+      </div>
+      <p id="camStatus" class="hint" style="margin-top:12px">Kamera av.</p>
+      <p id="camFps" class="hint"></p>
+      <div class="two">
+        <button class="btn" id="camStart">Start kamera</button>
+        <button class="btn gray" id="camStop" style="display:none">Stopp kamera</button>
+        <button class="btn gray" id="camCal">Kalibrer</button>
+      </div>
+      <label for="camMode">Når kameraet ser et poeng</label>
+      <select id="camMode">
+        <option value="auto">Registrer automatisk (4 sek til å si nei)</option>
+        <option value="confirm">Foreslå, og la meg bekrefte</option>
+      </select>
+      <label style="display:flex;gap:10px;align-items:center;font-weight:500">
+        <input type="checkbox" id="camSwap" style="width:auto"> Spiller 1 står på høyre side i bildet
+      </label>
+      <div id="camProposal"></div>
+    </div>
+
+    <div class="card">
+      <h2>Siste poeng kameraet så</h2>
+      <p class="hint">Blå strek er ballens bane. Oransje og grønne prikker er sprett på venstre og høyre side.</p>
+      <div id="camLog"><p class="empty">Ingen ennå.</p></div>
+    </div>
+
+    <div class="card">
+      <h2>Slik setter du opp kameraet</h2>
+      <ol class="steps">
+        <li><b>Plassering.</b> Sett kameraet på <b>langsiden</b> av bordet, 2–3 meter unna, rett ut for nettet. Du skal se hele bordet fra kant til kant, og kameraet bør stå omtrent i høyde med bordflaten eller litt over.</li>
+        <li><b>Stabilt.</b> Bruk stativ eller en klemme. Kameraet må ikke flytte seg etter at du har kalibrert.</li>
+        <li><b>Ball.</b> Bruk en <b>oransje</b> ball. Hvite baller forsvinner mot hvite vegger og klær.</li>
+        <li><b>Lys og bakgrunn.</b> Jevnt lys. Unngå oransje eller sterkt lys bak bordet (vindu, klær, plakater). Et mørkt, matt bord er best.</li>
+        <li><b>Start kameraet</b> og trykk <b>Kalibrer</b>. Trykk på venstre bordkant, høyre bordkant, og til slutt på ballen mens du holder den i bildet.</li>
+        <li><b>Test.</b> Sprett ballen på bordet. Den skal få en grønn ring, og du skal se oransje prikker når den treffer. Ser du ikke det: mer lys, eller bytt ball.</li>
+        <li><b>Skjerm og side.</b> Huk av «Spiller 1 står på høyre side» hvis det stemmer. Åpne Scoretavle og la den stå synlig.</li>
+      </ol>
+      <h2 style="margin-top:24px">Hvordan kameraet bestemmer poeng</h2>
+      <p class="hint">Kameraet ser hvor ballen sprettet sist. Den som har den siden av bordet har tapt rallyet, så motstanderen får poenget når ballen er borte eller ikke sprettet mer. Det dekker ball som ikke returneres, ball i nettet, for lang og ute. Har kameraet bare sett ett sprett, må du alltid bekrefte selv.</p>
+      <h2 style="margin-top:24px">Hva du trenger</h2>
+      <ul class="steps">
+        <li><b>Et kamera som tar minst 60 bilder i sekunden.</b> De fleste nyere mobiler gjør det. Et vanlig webcam tar ofte bare 30, og da blir ballen borte mellom bildene og sprett ikke funnet.</li>
+        <li><b>Stativ eller mobilklemme</b> (ca. 150–300 kr).</li>
+        <li><b>Oransje baller</b> (ca. 50 kr for en pakke).</li>
+        <li><b>Mobil som webcam:</b> Nettleseren åpner kamera bare på localhost eller HTTPS. Bruk en gratis app som gjør mobilen om til webcam på PC-en (f.eks. Iriun, DroidCam eller Camo), og åpne appen på <b>http://localhost:5026</b> på den PC-en.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- TOPPLISTE -->
+  <section id="board" class="page">
+    <h1><svg class="ic"><use href="#i-trophy"/></svg>Toppliste</h1>
+    <p class="lead">Hvem eier bordet? Slå de over deg for å klatre.</p>
+    <div class="card"><div id="list"></div></div>
+    <div class="card">
+      <h2>Ny spiller</h2>
+      <form id="addPlayer">
+        <label for="pn">Navn</label>
+        <input id="pn" name="name" placeholder="Navn" maxlength="50" required>
+        <button class="btn">Legg til spiller</button>
+        <p id="playerMsg" class="msg"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- NY KAMP -->
+  <section id="match" class="page">
+    <h1><svg class="ic"><use href="#i-plus"/></svg>Ny kamp</h1>
+    <p class="lead">Spilt uten å registrere? Før den inn her, så teller den.</p>
+    <div class="card">
+      <label for="m1">Spiller 1</label><select id="m1"></select>
+      <p class="vs">mot</p>
+      <label for="m2">Spiller 2</label><select id="m2"></select>
+      <div class="two">
+        <button class="btn orange" id="w1" type="button"></button>
+        <button class="btn orange" id="w2" type="button"></button>
+      </div>
+      <details>
+        <summary>Dato og poeng</summary>
+        <label for="md">Dato (tom = i dag)</label><input id="md" type="date">
+        <div class="two">
+          <div><label for="s1">Poeng spiller 1</label><input id="s1" type="number" min="0"></div>
+          <div><label for="s2">Poeng spiller 2</label><input id="s2" type="number" min="0"></div>
+        </div>
+      </details>
+      <p id="matchMsg" class="msg"></p>
+    </div>
+  </section>
+
+  <!-- MOT HVERANDRE -->
+  <section id="h2h" class="page">
+    <h1><svg class="ic"><use href="#i-vs"/></svg>Mot hverandre</h1>
+    <p class="lead">Rivaliseringen i tall. Hvem har overtaket?</p>
+    <div class="card">
+      <div class="two">
+        <div><label for="ha">Spiller 1</label><select id="ha"></select></div>
+        <div><label for="hb">Spiller 2</label><select id="hb"></select></div>
+      </div>
+      <details>
+        <summary>Bare ett år</summary>
+        <label for="hy">År, f.eks. 2026</label><input id="hy" type="number">
+      </details>
+      <button class="btn" id="hgo">Vis</button>
+    </div>
+    <div id="h2hOut"></div>
   </section>
 </main>
+<footer class="foot">Laget til kantina. Først til 11, to i forskjell.</footer>
 
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function api(path, opts) {
-  const r = await fetch('/api' + path, opts && { ...opts, headers: { 'Content-Type': 'application/json' } });
-  if (!r.ok) throw new Error(await r.text() || r.statusText);
-  return r.json();
+
+async function api(path, body) {
+  const r = await fetch('/api' + path, body && { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+  if (!r.ok) throw new Error((await r.text()).replace(/^"|"$/g, '') || r.statusText);
+  return r.status === 204 ? null : r.json();
 }
+function flash(el, text, ok) { el.textContent = text; el.className = 'msg ' + (ok ? 'ok' : 'err'); }
+
+function show(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('on', p.id === tab));
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  if (tab === 'score') loadScoreboard();
+  if (tab === 'table') loadTable();
+}
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => show(b.dataset.tab));
+
+// ---------- Spillere / toppliste ----------
 let players = [];
+function avatar(name) {
+  let h = 0; for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 360;
+  const ini = name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  return '<span class="av" style="background:hsl(' + h + ' 42% 40%)">' + esc(ini) + '</span>';
+}
+function rankTitle(r) {
+  return r >= 1250 ? 'Bordkonge' : r >= 1150 ? 'Spinn-mester' : r >= 1050 ? 'Smash-lærling' : r >= 950 ? 'Klubbspiller' : 'Treningsball';
+}
+function greeting() {
+  const h = new Date().getHours();
+  return h < 11 ? 'God morgen' : h < 17 ? 'God dag' : h < 22 ? 'God kveld' : 'Sent oppe';
+}
+let curQueue = [];
+const nameOf = id => players.find(p => p.id === +id)?.name ?? '';
+function updateWinnerButtons() {
+  $('#w1').textContent = nameOf($('#m1').value) + ' vant';
+  $('#w2').textContent = nameOf($('#m2').value) + ' vant';
+}
 async function loadPlayers() {
   players = await api('/players');
-  $('#board tbody').innerHTML = players.map((p, i) =>
-    `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${p.rating}</td></tr>`).join('');
+  $('#list').innerHTML = players.length
+    ? players.map((p, i) => `<div class="row${i === 0 ? ' leader' : ''}"><span class="rank">${i === 0 ? '<svg class="ic"><use href="#i-ball"/></svg>' : i + 1}</span><span class="who">${avatar(p.name)}<b>${esc(p.name)}<small>${rankTitle(p.rating)}</small></b></span><span class="num">${p.rating}</span></div>`).join('')
+    : '<p class="empty">Tomt her. Legg til de to første spillerne, så starter kampen om førsteplassen.</p>';
+  $('#kicker').textContent = greeting() + (players.length ? ' · ' + players.length + ' spillere i ligaen' : '');
+  const ids = ['#m1', '#m2', '#ha', '#hb', '#qp'];
   const opts = players.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
-  for (const id of ['#m1', '#m2', '#ha', '#hb']) {
-    const keep = $(id).value; $(id).innerHTML = opts; if (keep) $(id).value = keep;
+  const keep = ids.map(id => $(id).value);
+  ids.forEach((id, i) => { $(id).innerHTML = opts; if (keep[i]) $(id).value = keep[i]; });
+  if (players.length > 1) {
+    if ($('#m1').value === $('#m2').value) $('#m2').selectedIndex = 1;
+    if ($('#ha').value === $('#hb').value) $('#hb').selectedIndex = 1;
   }
-  if (players.length > 1 && $('#m1').value === $('#m2').value) { $('#m2').selectedIndex = 1; $('#hb').selectedIndex = 1; }
+  updateWinnerButtons();
 }
+$('#m1').onchange = $('#m2').onchange = updateWinnerButtons;
+
 $('#addPlayer').onsubmit = async e => {
   e.preventDefault();
-  try { await api('/players', { method: 'POST', body: JSON.stringify({ name: e.target.name.value }) }); e.target.reset(); await loadPlayers(); }
-  catch (err) { alert(err.message); }
-};
-$('#addMatch').onsubmit = async e => {
-  e.preventDefault(); $('#matchMsg').textContent = '';
-  const p1 = +$('#m1').value, p2 = +$('#m2').value;
-  const num = v => v === '' ? null : +v;
   try {
-    await api('/matches', { method: 'POST', body: JSON.stringify({
-      player1Id: p1, player2Id: p2, winnerId: $('#mw').value === '1' ? p1 : p2,
-      player1Score: num($('#s1').value), player2Score: num($('#s2').value),
-      playedAt: $('#md').value ? new Date($('#md').value + 'T12:00:00Z').toISOString() : null }) });
-    await loadPlayers(); $('#hgo').click();
-  } catch (err) { $('#matchMsg').textContent = err.message; }
+    const p = await api('/players', { name: $('#pn').value });
+    e.target.reset(); await loadPlayers(); flash($('#playerMsg'), `${p.name} er lagt til`, true);
+  } catch (err) { flash($('#playerMsg'), err.message, false); }
 };
+
+// ---------- Ny kamp (manuell) ----------
+async function saveMatch(side) {
+  const p1 = +$('#m1').value, p2 = +$('#m2').value, num = v => v === '' ? null : +v;
+  try {
+    const r = await api('/matches', {
+      player1Id: p1, player2Id: p2, winnerId: side === 1 ? p1 : p2,
+      player1Score: num($('#s1').value), player2Score: num($('#s2').value),
+      playedAt: $('#md').value ? new Date($('#md').value + 'T12:00:00Z').toISOString() : null });
+    await loadPlayers();
+    flash($('#matchMsg'), `Lagret. ${nameOf(side === 1 ? p1 : p2)} har nå rating ${r.winnerRating}`, true);
+    $('#s1').value = $('#s2').value = '';
+  } catch (err) { flash($('#matchMsg'), err.message, false); }
+}
+$('#w1').onclick = () => saveMatch(1);
+$('#w2').onclick = () => saveMatch(2);
+
+// ---------- Mot hverandre ----------
+function verdict(d, pa) {
+  if (d.gameCount >= 3 && (d.winsA === 0 || d.winsB === 0)) return 'Ren dominans: ' + esc(d.winsA ? d.playerAName : d.playerBName) + ' har aldri tapt.';
+  if (Math.abs(pa - 50) <= 5) return 'Helt jevnt. Dette kan gå begge veier.';
+  return esc(pa > 50 ? d.playerAName : d.playerBName) + ' er favoritt.';
+}
 $('#hgo').onclick = async () => {
   const y = $('#hy').value;
   try {
     const d = await api(`/head-to-head?playerA=${$('#ha').value}&playerB=${$('#hb').value}` + (y ? `&year=${y}` : ''));
     const pa = Math.round(d.winProbabilityA * 100), pb = 100 - pa;
-    const streak = d.streakLength ? `Siste rekke: ${esc(d.streakPlayerId === d.playerAId ? d.playerAName : d.playerBName)} har vunnet ${d.streakLength} på rad.` : '';
-    $('#h2h').innerHTML = `
-      <p><strong>${esc(d.playerAName)}</strong> ${d.winsA} – ${d.winsB} <strong>${esc(d.playerBName)}</strong>
-         <span class="muted">(${d.gameCount} kamper)</span><br>${streak}</p>
-      <div class="bar"><div class="a" style="width:${pa}%">${pa}%</div><div class="b" style="width:${pb}%">${pb}%</div></div>
-      <p class="muted">Sannsynlighet for å vinne neste kamp. ELO alene: ${Math.round(d.eloProbabilityA * 100)}% for ${esc(d.playerAName)}; innbyrdes historikk: ${Math.round(d.historyProbabilityA * 100)}%.</p>
-      <table><thead><tr><th>Dato</th><th>Vinner</th><th>Stilling</th></tr></thead><tbody>${
-        d.games.map(g => `<tr><td>${new Date(g.playedAt).toLocaleDateString('no')}</td><td>${esc(g.winnerName)}</td><td>${esc(g.score ?? '–')}</td></tr>`).join('')
-      }</tbody></table>`;
-  } catch (err) { $('#h2h').innerHTML = `<p class="err">${esc(err.message)}</p>`; }
+    const streakName = d.streakPlayerId === d.playerAId ? d.playerAName : d.playerBName;
+    $('#h2hOut').innerHTML = `
+      <div class="card" style="text-align:center">
+        <h2>Stilling${y ? ' i ' + esc(y) : ''}</h2>
+        <div class="big-score">${d.winsA} – ${d.winsB}</div>
+        <p class="hint" style="margin:0">${esc(d.playerAName)} mot ${esc(d.playerBName)} · ${d.gameCount} kamper</p>
+        <p class="verdict">${verdict(d, pa)}</p>
+        ${d.streakLength ? `<p class="hint" style="margin:6px 0 0">${esc(streakName)} har vunnet ${d.streakLength} på rad</p>` : ''}
+      </div>
+      <div class="card">
+        <h2>Hvem vinner neste kamp?</h2>
+        <p class="hint">Regnet ut fra rating og tidligere kamper mellom dem.</p>
+        <div class="bar"><div class="a" style="width:${pa}%">${pa}%</div><div class="b" style="width:${pb}%">${pb}%</div></div>
+        <div class="row" style="border:0"><b>${esc(d.playerAName)}</b><b>${esc(d.playerBName)}</b></div>
+      </div>
+      <div class="card">
+        <h2>Alle kampene</h2>
+        ${d.games.length ? d.games.map(g => `<div class="row"><span class="hint" style="margin:0">${new Date(g.playedAt).toLocaleDateString('no')}</span><b>${esc(g.winnerName)} vant</b><span class="num">${esc(g.score ?? '')}</span></div>`).join('')
+          : '<p class="empty">Ingen kamper mellom dere ennå. På tide å gjøre noe med det.</p>'}
+      </div>`;
+  } catch (err) { $('#h2hOut').innerHTML = `<div class="card"><p class="msg err">${esc(err.message)}</p></div>`; }
 };
-loadPlayers();
+
+// ---------- Bordet / kø ----------
+async function loadTable() {
+  const [queue, recent] = await Promise.all([api('/queue'), api('/matches')]);
+  const [a, b, ...rest] = queue; curQueue = queue;
+  $('#now').innerHTML = b ? `
+      <div class="nowgame">${esc(a.name)}<span>mot</span>${esc(b.name)}</div>
+      <p class="hint" style="text-align:center">Rating ${a.rating} · ${b.rating}</p>
+      <div class="two">
+        <button class="btn orange" data-win="${a.playerId}">${esc(a.name)} vant</button>
+        <button class="btn orange" data-win="${b.playerId}">${esc(b.name)} vant</button>
+      </div>
+      <button class="btn gray" data-tab-go="score">Åpne scoretavle</button>`
+    : `<p class="empty">${a ? esc(a.name) + ' står klar og venter på en utfordrer.' : 'Bordet står tomt. Første som melder seg får serven.'}</p>`;
+  $('#queue').innerHTML = rest.length
+    ? rest.map((q, i) => `<div class="row"><span class="who"><span class="rank">${i + 1}.</span>${avatar(q.name)}<b>${esc(q.name)}<small>${rankTitle(q.rating)}</small></b></span><button class="btn gray small" data-leave="${q.playerId}">Forlat</button></div>`).join('')
+    : '<p class="empty">Ingen i køen. Bordet venter på deg.</p>';
+  $('#recent').innerHTML = recent.length
+    ? recent.slice(0, 5).map(m => `<div class="row"><b>${esc(m.winner)}</b><span class="hint" style="margin:0">slo ${esc(m.winner === m.player1 ? m.player2 : m.player1)}</span></div>`).join('')
+    : '<p class="empty">Ingen kamper ennå. Historien skrives i dag.</p>';
+}
+// Oppdaterer seg selv, så en skjerm alltid er riktig.
+setInterval(async () => {
+  if (!$('#table').classList.contains('on') || document.activeElement?.tagName === 'SELECT') return;
+  try { await Promise.all([loadTable(), loadPlayers()]); } catch {}
+}, 5000);
+
+$('#now').onclick = async e => {
+  if (e.target.dataset.tabGo) return show(e.target.dataset.tabGo);
+  const id = e.target.dataset.win; if (!id) return;
+  e.target.disabled = true;
+  try {
+    const r = await api('/queue/result', { winnerId: +id });
+    const w = curQueue.find(q => q.playerId === +id);
+    flash($('#queueMsg'), (w ? w.name : 'Vinneren') + ' vant og blir stående. Ny rating: ' + r.winnerRating + '.', true);
+  } catch (err) { flash($('#queueMsg'), err.message, false); }
+  await Promise.all([loadTable(), loadPlayers()]);
+};
+$('#queue').onclick = async e => {
+  const id = e.target.dataset.leave; if (!id) return;
+  await fetch('/api/queue/' + id, { method: 'DELETE' }); loadTable();
+};
+$('#qjoin').onclick = async () => {
+  try { await api('/queue', { playerId: +$('#qp').value }); flash($('#queueMsg'), 'Du står i køen', true); await loadTable(); }
+  catch (err) { flash($('#queueMsg'), err.message, false); }
+};
+$('#undo').onclick = async () => {
+  if (!confirm('Angre siste registrerte kamp? Ratingen settes tilbake (køen endres ikke).')) return;
+  const r = await fetch('/api/matches/last', { method: 'DELETE' });
+  if (!r.ok) flash($('#queueMsg'), (await r.text()).replace(/^"|"$/g, ''), false);
+  await Promise.all([loadTable(), loadPlayers()]);
+};
+fetch('/api/info').then(r => r.json()).then(d => {
+  $('#urls').innerHTML = d.urls.length ? d.urls.map(u => `<div class="row"><b>${esc(u)}</b></div>`).join('') : '<p class="empty">Fant ingen nettverksadresse.</p>';
+});
+
+// ---------- Scoretavle ----------
+// Tilstand ligger i nettleseren (localStorage) slik at en oppfriskning ikke mister stillingen.
+// Poeng og games telles her; først når kampen er vunnet og lagret sendes resultatet til serveren.
+const WIN_POINTS = 11;
+let sb = null; // { a:{id,name,rating,pts,games}, b:{...}, best, log:[ 'a' | 'b' ] }
+const SB_KEY = 'ppk-scoreboard';
+function sbSave() { try { sb ? localStorage.setItem(SB_KEY, JSON.stringify(sb)) : localStorage.removeItem(SB_KEY); } catch {} }
+function sbRestore() { try { return JSON.parse(localStorage.getItem(SB_KEY)); } catch { return null; } }
+const gamesNeeded = () => Math.ceil(sb.best / 2);
+
+function sbReplay() {          // regner ut stillingen fra loggen, slik at «Korriger» alltid stemmer
+  sb.a.pts = sb.b.pts = sb.a.games = sb.b.games = 0;
+  for (const who of sb.log) {
+    sb[who].pts++;
+    const [x, y] = who === 'a' ? [sb.a, sb.b] : [sb.b, sb.a];
+    if (x.pts >= WIN_POINTS && x.pts - y.pts >= 2) { x.games++; sb.a.pts = sb.b.pts = 0; }
+  }
+}
+function sbWinner() {
+  if (!sb) return null;
+  return sb.a.games >= gamesNeeded() ? sb.a : sb.b.games >= gamesNeeded() ? sb.b : null;
+}
+async function loadScoreboard() {
+  const queue = await api('/queue');
+  const [a, b] = queue;
+  const saved = sbRestore();
+  if (!a || !b) { sb = null; sbSave(); return renderScoreboard(); }
+  // Samme to spillere som sist? Behold stillingen. Ellers start på nytt.
+  if (saved && saved.a.id === a.playerId && saved.b.id === b.playerId) sb = saved;
+  else sb = { a: { id: a.playerId, name: a.name, rating: a.rating, pts: 0, games: 0 },
+              b: { id: b.playerId, name: b.name, rating: b.rating, pts: 0, games: 0 }, best: +$('#sbBest').value, log: [] };
+  $('#sbBest').value = sb.best;
+  sbSave(); renderScoreboard();
+}
+function renderScoreboard() {
+  const body = $('#sbBody'), win = sbWinner();
+  if (!sb) {
+    body.innerHTML = '<div class="sb-empty">Scoretavlen trenger to spillere.<br>Still dere i kø under «Bordet».</div>';
+    $('#sbInfo').textContent = ''; $('#sbWin').classList.remove('on'); return;
+  }
+  const side = (p, k) => {
+    const o = k === 'a' ? sb.b : sb.a;
+    const gp = !win && p.pts >= WIN_POINTS - 1 && p.pts > o.pts, mp = gp && p.games + 1 >= gamesNeeded();
+    return `
+    <div class="sb-side">
+      <div class="sb-name">${esc(p.name)}</div>
+      <div class="sb-rating">Rating ${p.rating}</div>
+      <div class="sb-tag">${mp ? 'Matchball' : gp ? 'Gamepoint' : ''}</div>
+      <div class="sb-pts">${p.pts}</div>
+      <div class="sb-games">Games <b>${p.games}</b></div>
+      <button class="sb-btn" data-pt="${k}" ${win ? 'disabled' : ''}>${esc(p.name)} scoret</button>
+    </div>`;
+  };
+  body.innerHTML = `<div class="sb-cols">${side(sb.a, 'a')}<div class="sb-div"></div>${side(sb.b, 'b')}</div>`;
+  $('#sbInfo').textContent = `Først til ${WIN_POINTS} (to i forskjell) · best av ${sb.best}`;
+  $('#sbWin').classList.toggle('on', !!win);
+  if (win) {
+    $('#sbWinTitle').textContent = win.name + ' vant';
+    $('#sbWinSub').textContent = `${sb.a.name} ${sb.a.games} – ${sb.b.games} ${sb.b.name}`;
+  }
+}
+function sbPoint(k) {
+  if (!sb || sbWinner()) return false;
+  sb.log.push(k); sbReplay(); sbSave(); renderScoreboard();
+  return true;
+}
+$('#sbBody').onclick = e => { const k = e.target.dataset.pt; if (k) sbPoint(k); };
+// Brukes av camera.js: kameraet gir poeng gjennom samme funksjon som knappene.
+window.ppk = {
+  point: sbPoint,
+  ensure: async () => { if (!sb) await loadScoreboard(); return !!sb; },
+  names: () => sb ? { a: sb.a.name, b: sb.b.name } : null,
+};
+$('#sbCorrect').onclick = $('#sbUndoWin').onclick = () => {
+  if (!sb || !sb.log.length) return;
+  sb.log.pop(); sbReplay(); sbSave(); renderScoreboard();
+};
+$('#sbReset').onclick = () => {
+  if (!sb || !sb.log.length || !confirm('Nullstille stillingen?')) return;
+  sb.log = []; sbReplay(); sbSave(); renderScoreboard();
+};
+$('#sbBest').onchange = () => {
+  if (!sb) return;
+  if (sb.log.length && !confirm('Å endre antall games nullstiller stillingen. Fortsette?')) { $('#sbBest').value = sb.best; return; }
+  sb.best = +$('#sbBest').value; sb.log = []; sbReplay(); sbSave(); renderScoreboard();
+};
+$('#sbFull').onclick = () => document.fullscreenElement ? document.exitFullscreen() : $('#sb').requestFullscreen?.();
+$('#sbSave').onclick = async () => {
+  const w = sbWinner(); if (!w) return;
+  const l = w === sb.a ? sb.b : sb.a;
+  $('#sbSave').disabled = true;
+  try {
+    await api('/queue/result', { winnerId: w.id, winnerScore: w.games, loserScore: l.games });
+    sb = null; sbSave(); await loadPlayers(); await loadScoreboard();
+  } catch (err) { alert(err.message); }
+  $('#sbSave').disabled = false;
+};
+
+loadPlayers().then(loadTable);
 </script>
+<script src="camera.js"></script>
 </body>
 </html>
